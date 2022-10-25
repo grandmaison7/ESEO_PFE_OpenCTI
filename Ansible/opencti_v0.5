@@ -1,0 +1,422 @@
+# const ------------------------------------------------------------
+
+# opencti
+opencti_email="email@company.example"
+opencti_ver="3.3.2"
+opencti_dir="/opt/opencti"
+opencti_worker_count=2
+
+# minio
+minio_dir="/opt/minio/data"
+
+# redis
+redis_ver="6.0.5"
+
+# rabbitmq
+rabbitmq_ver="3.8.5-1"
+
+# grakn
+grakn_core_server_ver="1.7.2"
+grakn_console_ver="1.0.5"
+grakn_core_all_ver="1.7.2"
+
+
+# def --------------------------------------------------------------
+
+# echo str params
+function quit_on_error () {
+	if [[ $? -gt 0 ]]
+		then
+			echo -e "\n\n $@ ...FAIL";
+			exit 10
+	else
+		echo "$@ ...OK"
+	fi
+}
+
+# no params
+function update_apt_pkg () {
+	DEBIAN_FRONTEND=noninteractive apt-get -qq update
+	quit_on_error "Checking packages"
+}
+
+# $1 is apt-get pkg - $2 is apt-ver
+function check_apt_pkg () {
+	if [[ $(dpkg -l | grep $1) ]]
+		then
+			echo >&2 "$1 found, attempting upgrade:";
+			DEBIAN_FRONTEND=noninteractive apt -qq install --only-upgrade "$1""$2" > /dev/null 2>&1;
+			quit_on_error "Upgrading $1$2"
+	else
+		echo >&2 "$1 missing, attempting install:";
+		DEBIAN_FRONTEND=noninteractive apt -qq -y install "$1""$2" > /dev/null 2>&1;
+		quit_on_error "Installing $1$2"
+	fi
+}
+
+# $1 is service name, matching grakn service output
+function check_service () {
+	if [[ $(systemctl show -p ActiveState --value "$1") == "active" ]]
+		then
+			echo "$1: RUNNING"
+	else
+		echo "$1: NOT RUNNING"
+	fi
+}
+
+# $1 is service name
+function enable_service () {
+	if [[ $(systemctl is-enabled "$1") == "disabled" ]]
+		then
+			echo "$1 service not enabled."
+			systemctl enable --now "$1"
+			quit_on_error "Enabling $1"
+	elif [[ $(systemctl show -p SubState --value "$1") == "running" ]]
+		then
+			echo "$1 service already running."
+			systemctl restart "$1"
+			quit_on_error "Restarting $1"
+	else
+		echo "$1 service not running."
+		systemctl start "$1"
+		quit_on_error "Starting $1"
+	fi
+
+	sleep 5  # wait for services to be ready
+}
+
+# $1 is service name
+function disable_service () {
+	if [[ $(systemctl is-enabled "$1") == "enabled" ]]
+		then
+			echo "$1 service enabled. Disabling."
+			systemctl disable --now "$1"
+			quit_on_error "Disabling $1"
+	elif [[ $(systemctl show -p SubState --value "$1") == "running" ]]
+		then
+			echo "$1 service still running. Stopping."
+			systemctl stop "$1"
+			quit_on_error "Stopping $1"
+	else
+		echo "$1 service not running."
+		quit_on_error "Skipping $1"
+	fi
+}
+
+
+# prerequisites script ---------------------------------------------
+
+# disable/stop services
+for i in $(seq 1 $opencti_worker_count)
+	do
+		disable_service "opencti-worker@$i"
+	done
+disable_service 'opencti-server'
+disable_service 'elasticsearch'
+disable_service 'redis-server'
+disable_service 'rabbitmq-server'
+disable_service 'minio'
+disable_service 'grakn'
+
+# init update repos
+update_apt_pkg
+
+# required
+check_apt_pkg 'wget'
+check_apt_pkg 'tar'
+check_apt_pkg 'git'
+check_apt_pkg 'openssl'
+check_apt_pkg 'curl'
+check_apt_pkg 'software-properties-common'
+check_apt_pkg 'apt-transport-https'
+
+# nodejs
+check_apt_pkg 'nodejs'
+check_apt_pkg 'npm'
+npm install -g n
+n lts
+sed -i 's|PATH.*|'"${PATH}:/usr/local/bin/node"'|g' /etc/environment
+export PATH="$PATH:/usr/local/bin/node"
+npm rebuild
+
+# yarn
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+update_apt_pkg
+check_apt_pkg 'yarn'
+
+# python
+check_apt_pkg "${run_python}"
+check_apt_pkg "python3-pip"
+# fix pyyaml ver
+${run_python} -m pip install --upgrade pip
+${run_python} -m pip -q install --ignore-installed PyYAML
+
+# grakn
+apt-key adv --keyserver keyserver.ubuntu.com --recv 8F3DA4B5E9AEF44C
+add-apt-repository 'deb [ arch=all ] https://repo.grakn.ai/repository/apt/ trusty main'
+update_apt_pkg
+check_apt_pkg 'grakn-core-server' "=${grakn_core_server_ver}"
+check_apt_pkg 'grakn-console' "=${grakn_console_ver}"
+check_apt_pkg 'grakn-core-all' "=${grakn_core_all_ver}"
+
+# make systemd unit file
+cat <<EOT > /etc/systemd/system/grakn.service
+[Unit]
+Description=Grakn.AI Server daemon
+After=network.target
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/grakn server start
+ExecStop=/usr/local/bin/grakn server stop
+ExecReload=/usr/local/bin/grakn server stop && /usr/local/bin/grakn server start
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target
+EOT
+systemctl daemon-reload
+enable_service 'grakn'
+
+# elasticsearch
+wget -qO - 'https://artifacts.elastic.co/GPG-KEY-elasticsearch' | apt-key add -
+add-apt-repository "deb https://artifacts.elastic.co/packages/7.x/apt stable main"
+update_apt_pkg
+check_apt_pkg 'elasticsearch'
+enable_service 'elasticsearch'
+
+# minio
+wget --quiet -O minio https://dl.min.io/server/minio/release/linux-amd64/minio
+chmod +x minio
+mv minio "/usr/local/bin/"
+if [[ ! -d "${minio_dir}" ]]
+	then
+		mkdir -p "${minio_dir}"
+fi
+
+# https://github.com/minio/minio-service/blob/master/linux-systemd/minio.service
+if [[ ! -f "/etc/default/minio" ]]
+	then
+		# .minio.access_key
+		RMINIOAK="$(openssl rand -hex 12)"
+		# .minio.secret_key
+		RMINIOSK="$(openssl rand -base64 25 | tr -d '/')"
+		cat <<-EOT > /etc/default/minio
+		# Volume to be used for MinIO server.
+		MINIO_VOLUMES="/opt/minio/data/"
+		# Use if you want to run MinIO on a custom port.
+		# MINIO_OPTS="--address :9199"
+		# Access Key of the server.
+		MINIO_ACCESS_KEY=${RMINIOAK}
+		# Secret key of the server.
+		MINIO_SECRET_KEY=${RMINIOSK}
+		EOT
+else
+	RMINIOAK="$(grep -o 'MINIO_ACCESS_KEY=.*' /etc/default/minio | cut -f2- -d=)"
+	RMINIOSK="$(grep -o 'MINIO_SECRET_KEY=.*' /etc/default/minio | cut -f2- -d=)"
+fi
+curl "https://raw.githubusercontent.com/minio/minio-service/master/linux-systemd/minio.service" -o "/etc/systemd/system/minio.service"
+sed -i'' -e 's/User=minio-user/User=root/g' "/etc/systemd/system/minio.service"
+sed -i'' -e 's/Group=minio-user/Group=root/g' "/etc/systemd/system/minio.service"
+systemctl daemon-reload
+enable_service 'minio'
+
+# redis
+update_apt_pkg
+check_apt_pkg 'gcc' 
+check_apt_pkg 'build-essential'
+check_apt_pkg 'libsystemd-dev'  # required for systemd notify to work
+check_apt_pkg 'pkg-config'
+
+if [[ ! -f "/usr/local/bin/redis-server" ]]
+	then
+		wget "http://download.redis.io/releases/redis-${redis_ver}.tar.gz"
+		tar xzf redis-${redis_ver}.tar.gz
+		cd redis-${redis_ver}
+		make -s
+		quit_on_error "Building Redis ${redis_ver}..."
+		make -s install
+		quit_on_error "Installing Redis ${redis_ver}..."
+		cd ..
+fi
+
+if [[ ! $(id redis) ]]
+	then
+		adduser --system --group --no-create-home redis
+		usermod -L redis
+fi
+
+if [[ ! -d "/var/lib/redis/" ]]
+	then
+		mkdir -p "/var/lib/redis"
+		chown redis:redis "/var/lib/redis"
+		chmod ug+rwX "/var/lib/redis"
+fi
+
+if [[ ! -d "/etc/redis/" ]]
+	then
+		mkdir -p "/etc/redis/"
+		chown -R redis:redis "/etc/redis/"
+fi
+
+if [[ ! -f "/etc/redis/redis.conf" ]]
+	then
+		cp "redis-${redis_ver}/redis.conf" "/etc/redis/redis.conf"
+		sed -i 's/^supervised no/supervised systemd/' "/etc/redis/redis.conf"
+		chown redis:redis "/etc/redis/redis.conf"
+fi
+
+if [[ ! -f "/etc/default/redis-server" ]]
+	then
+		touch "/etc/default/redis-server"  
+		echo 'ULIMIT=65536' >> "/etc/default/redis-server"
+fi
+
+if [[ ! -f "/etc/systemd/system/redis-server.service" ]]
+	then
+		cat <<- EOT > /etc/systemd/system/redis-server.service
+		[Unit]
+		Description=Redis persistent key-value storage
+		After=network.target
+		[Service]
+		Type=notify
+		ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
+		ExecStop=/usr/local/bin/redis-cli -p 6379 shutdown
+		ExecReload=/bin/kill -USR2 \$MAINPID
+		TimeoutStartSec=10
+		TimeoutStopSec=10
+		Restart=on-failure
+		[Install]
+		WantedBy=multi-user.target
+		EOT
+	systemctl daemon-reload
+fi
+
+enable_service 'redis-server'
+
+
+# rabbitmq
+RMQ_release_url="https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc"
+curl -fsSL "${RMQ_release_url}" | apt-key add -
+tee /etc/apt/sources.list.d/bintray.rabbitmq.list <<EOT
+## Installs the latest Erlang 22.x release.
+## Change component to "erlang-21.x" to install the latest 21.x version.
+## "bionic" as distribution name should work for any later Ubuntu or Debian release.
+## See the release to distribution mapping table in RabbitMQ doc guides to learn more.
+deb [trusted=yes] https://dl.bintray.com/rabbitmq-erlang/debian ${distro} erlang
+deb [trusted=yes] https://dl.bintray.com/rabbitmq/debian ${distro} main
+EOT
+update_apt_pkg
+check_apt_pkg 'rabbitmq-server' "=${rabbitmq_ver}"
+enable_service 'rabbitmq-server'
+
+RRMQUNAME="rabbitadmin"
+
+# rabbitmq doesn't like '/'
+RRMQPASS="$(openssl rand -base64 25 | tr -d '/' | tr -d '+')"
+
+# get the info once
+RMQ_user_list="$(rabbitmqctl list_users)"
+if grep 'guest' <<< "${RMQ_user_list}"
+	then
+		rabbitmqctl delete_user guest
+fi
+
+if ! grep "${RRMQUNAME}" <<< "${RMQ_user_list}"
+	then
+		rabbitmqctl add_user "${RRMQUNAME}" "${RRMQPASS}"
+else
+	rabbitmqctl change_password "${RRMQUNAME}" "${RRMQPASS}"
+fi
+rabbitmqctl set_user_tags "${RRMQUNAME}" administrator
+rabbitmqctl set_permissions -p / "${RRMQUNAME}" ".*" ".*" ".*"
+rabbitmqctl start_app
+rabbitmq-plugins enable rabbitmq_management
+
+RMQ_user_list="$(rabbitmqctl list_users)"
+echo -e "${RMQ_user_list}"
+
+# check service status
+check_service 'elasticsearch'
+check_service 'redis-server'
+check_service 'rabbitmq-server'
+check_service 'minio'
+check_service 'grakn'
+
+
+# opencti script ---------------------------------------------------
+
+# get opencti
+wget --quiet -O opencti-release-${opencti_ver}.tar.gz "https://github.com/OpenCTI-Platform/opencti/releases/download/${opencti_ver}/opencti-release-${opencti_ver}.tar.gz"
+tar -xzf "opencti-release-${opencti_ver}.tar.gz" --directory "/opt/"
+
+echo "Changing owner of ${opencti_dir} to:" $(whoami)":"$(id -gn)
+chown -R $(whoami):$(id -gn) "${opencti_dir}"
+
+# install python reqs
+${run_python} -m pip -q install -r "${opencti_dir}/connectors/export-file-stix/src/requirements.txt"
+${run_python} -m pip -q install -r "${opencti_dir}/connectors/import-file-stix/src/requirements.txt"
+${run_python} -m pip -q install -r "${opencti_dir}/src/python/requirements.txt"
+${run_python} -m pip -q install -r "${opencti_dir}/worker/requirements.txt"
+${run_python} -m pip install requests==2.23.0
+
+# edit configs - copy default json and replace the email and
+# let the script take care of the rest
+# .app.admin.password
+RADMINPASS="$(openssl rand -base64 25 | tr -d '/')"
+# .app.admin.token
+RADMINTOKEN="$(uuidgen -r | tr -d '\n' | tr '[:upper:]' '[:lower:]')"
+
+# copy proper configs
+cat "${script_pwd}/default.json" | jq '.app.admin.email="'"${opencti_email}"'" | .app.admin.password="'"${RADMINPASS}"'" | .app.admin.token="'"${RADMINTOKEN}"'" | .minio.access_key="'"${RMINIOAK}"'" | .minio.secret_key="'"${RMINIOSK}"'" | .rabbitmq.username="'"${RRMQUNAME}"'" | .rabbitmq.password="'"${RRMQPASS}"'"' > "$opencti_dir/config/production.json"
+
+# build unit file
+cat <<EOT > /etc/systemd/system/opencti-server.service
+[Unit]
+Description=OpenCTI Server daemon
+After=network.target
+[Service]
+Type=simple
+WorkingDirectory=${opencti_dir}/
+ExecStart=/usr/bin/yarn serv
+ExecReload=/bin/kill -s HUP \$MAINPID
+ExecStop=/bin/kill -s TERM \$MAINPID
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
+EOT
+# copy worker config
+cp "${script_pwd}/config.yml.sample" "$opencti_dir/worker/config.yml"
+
+# edit worker config
+sed -i'' -e 's/token: '"'"'ChangeMe'"'"'/token: '"${RADMINTOKEN}"'/g' "$opencti_dir/worker/config.yml"
+
+cat <<EOT > /etc/systemd/system/opencti-worker@.service
+[Unit]
+Description=OpenCTI Worker daemon %i
+After=network.target opencti-server.service
+[Service]
+Type=simple
+WorkingDirectory=${opencti_dir}/worker/
+ExecStart=/usr/bin/${run_python} "${opencti_dir}/worker/worker.py"
+ExecReload=/bin/kill -s HUP \$MAINPID
+ExecStop=/bin/kill -s TERM \$MAINPID
+PrivateTmp=true
+Restart=always
+[Install]
+WantedBy=multi-user.target
+EOT
+
+systemctl daemon-reload
+
+# start services - sleep for waiting on service boot
+enable_service 'opencti-server'
+sleep 30  # waiting for opencti to check all services
+check_service 'opencti-server'
+
+for i in $(seq 1 $opencti_worker_count)
+	do
+		sleep 5
+		enable_service "opencti-worker@$i"
+		sleep 5
+		check_service "opencti-worker@$i"
+	done
