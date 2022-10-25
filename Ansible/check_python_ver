@@ -1,0 +1,9 @@
+# check ubuntu ver for python - 18 uses 3.6 (will install 3.7) - 20 uses 3.8
+
+if [[ $(grep "Ubuntu " /etc/lsb-release | cut -d" " -f2 | cut -d\. -f1) == 18 ]]
+	then
+		python_ver="3.7"
+elif [[ $(grep "Ubuntu " /etc/lsb-release | cut -d" " -f2 | cut -d\. -f1) == 20 ]]
+	then
+		python_ver="3"
+fi
