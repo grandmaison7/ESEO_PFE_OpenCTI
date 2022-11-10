@@ -1,6 +1,9 @@
 mkdir /opencti
 cd /opencti
-echo "version: '3'" >> opencti/docker-compose.yml
+
+touch docker-compose.yml
+
+echo "version: '3'" >> docker-compose.yml
 
 echo '
 services:
@@ -483,7 +486,9 @@ volumes:
   s3data:
   redisdata:
   amqpdata:
-' >> /opencti/docker-compose.yml
+' >> docker-compose.yml
+
+touch .env
 
 echo "
 OPENCTI_ADMIN_EMAIL=swarm@test.com
@@ -499,10 +504,6 @@ CONNECTOR_IMPORT_FILE_STIX_ID=a5742c0a-a9a4-409a-8ff5-a20368edc252
 CONNECTOR_IMPORT_DOCUMENT_ID=6ae1d4e8-26ae-4129-b0d7-7d5b40d81a02
 ELASTIC_MEMORY_SIZE=4G
 " >> .env
-
-sudo apt install uuid-runtime
-
-sed -i 's/OPENCTI_ADMIN_TOKEN=ChangeMe_UUIDv4//g' /opencti/.env
 
 admin_token=$(uuidgen)
 
