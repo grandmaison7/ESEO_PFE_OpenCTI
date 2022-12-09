@@ -32,8 +32,8 @@ services:
     ports:
       - "9000:9000"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}    
+      MINIO_ROOT_USER: opencti
+      MINIO_ROOT_PASSWORD: CHANGEME
     command: server /data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
@@ -44,8 +44,8 @@ services:
   rabbitmq:
     image: rabbitmq:3.10-management
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_DEFAULT_USER=opencti
+      - RABBITMQ_DEFAULT_PASS=CHANGEME
     volumes:
       - amqpdata:/var/lib/rabbitmq
     restart: always
@@ -54,10 +54,10 @@ services:
     environment:
       - NODE_OPTIONS=--max-old-space-size=8096
       - APP__PORT=8080
-      - APP__BASE_URL=${OPENCTI_BASE_URL}
-      - APP__ADMIN__EMAIL=${OPENCTI_ADMIN_EMAIL}
-      - APP__ADMIN__PASSWORD=${OPENCTI_ADMIN_PASSWORD}
-      - APP__ADMIN__TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - APP__BASE_URL=http://localhost:8080
+      - APP__ADMIN__EMAIL=youremail@email.com
+      - APP__ADMIN__PASSWORD=CHANGEME
+      - APP__ADMIN__TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - APP__APP_LOGS__LOGS_LEVEL=error
       - REDIS__HOSTNAME=redis
       - REDIS__PORT=6379
@@ -65,15 +65,15 @@ services:
       - MINIO__ENDPOINT=minio
       - MINIO__PORT=9000
       - MINIO__USE_SSL=false
-      - MINIO__ACCESS_KEY=${MINIO_ROOT_USER}
-      - MINIO__SECRET_KEY=${MINIO_ROOT_PASSWORD}
+      - MINIO__ACCESS_KEY=opencti
+      - MINIO__SECRET_KEY=CHANGEME
       - RABBITMQ__HOSTNAME=rabbitmq
       - RABBITMQ__PORT=5672
       - RABBITMQ__PORT_MANAGEMENT=15672
       - RABBITMQ__MANAGEMENT_SSL=false
-      - RABBITMQ__USERNAME=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ__PASSWORD=${RABBITMQ_DEFAULT_PASS}
-      - SMTP__HOSTNAME=${SMTP_HOSTNAME}
+      - RABBITMQ__USERNAME=opencti
+      - RABBITMQ__PASSWORD=CHANGEME
+      #- SMTP__HOSTNAME=${SMTP_HOSTNAME}
       - SMTP__PORT=25
       - PROVIDERS__LOCAL__STRATEGY=LocalStrategy
     ports:
@@ -88,7 +88,7 @@ services:
     image: opencti/worker:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - WORKER_LOG_LEVEL=info
     depends_on:
       - opencti
@@ -100,8 +100,8 @@ services:
     image: opencti/connector-export-file-stix:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
-      - CONNECTOR_ID=${CONNECTOR_EXPORT_FILE_STIX_ID} # Valid UUIDv4
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
+      - CONNECTOR_ID=b356305a-2695-45a1-b2a3-800704ff8229 # Valid UUIDv4
       - CONNECTOR_TYPE=INTERNAL_EXPORT_FILE
       - CONNECTOR_NAME=ExportFileStix2
       - CONNECTOR_SCOPE=application/json
@@ -114,8 +114,8 @@ services:
     image: opencti/connector-export-file-csv:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
-      - CONNECTOR_ID=${CONNECTOR_EXPORT_FILE_CSV_ID} # Valid UUIDv4
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
+      - CONNECTOR_ID=61dccc87-6dcc-4611-80b4-0a5fe9129188 # Valid UUIDv4
       - CONNECTOR_TYPE=INTERNAL_EXPORT_FILE
       - CONNECTOR_NAME=ExportFileCsv
       - CONNECTOR_SCOPE=text/csv
@@ -128,8 +128,8 @@ services:
     image: opencti/connector-export-file-txt:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
-      - CONNECTOR_ID=${CONNECTOR_EXPORT_FILE_TXT_ID} # Valid UUIDv4
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
+      - CONNECTOR_ID=000b42e2-9112-45fd-ba64-3189e1f9d030 # Valid UUIDv4
       - CONNECTOR_TYPE=INTERNAL_EXPORT_FILE
       - CONNECTOR_NAME=ExportFileTxt
       - CONNECTOR_SCOPE=text/plain
@@ -142,8 +142,8 @@ services:
     image: opencti/connector-import-file-stix:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
-      - CONNECTOR_ID=${CONNECTOR_IMPORT_FILE_STIX_ID} # Valid UUIDv4
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
+      - CONNECTOR_ID=0094d9dc-032b-4346-adca-c267f92d29a3 # Valid UUIDv4
       - CONNECTOR_TYPE=INTERNAL_IMPORT_FILE
       - CONNECTOR_NAME=ImportFileStix
       - CONNECTOR_VALIDATE_BEFORE_IMPORT=true # Validate any bundle before import
@@ -158,8 +158,8 @@ services:
     image: opencti/connector-import-document:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
-      - CONNECTOR_ID=${CONNECTOR_IMPORT_DOCUMENT_ID} # Valid UUIDv4
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
+      - CONNECTOR_ID=57eef5d6-10ab-4103-807d-6fe411a3cabd # Valid UUIDv4
       - CONNECTOR_TYPE=INTERNAL_IMPORT_FILE
       - CONNECTOR_NAME=ImportDocument
       - CONNECTOR_VALIDATE_BEFORE_IMPORT=true # Validate any bundle before import
@@ -176,7 +176,7 @@ services:
     image: opencti/connector-alienvault:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=4d3c1dbf-b521-44b5-8d4d-c011554993b7
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - CONNECTOR_NAME=AlienVault
@@ -205,7 +205,7 @@ services:
     image: opencti/connector-cybercrime-tracker:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=f48e3dbb-142b-4497-805f-be2feb364fa8
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - CONNECTOR_NAME=Cybercrime-Tracker
@@ -225,7 +225,7 @@ services:
     image: opencti/connector-abuseipdb-ipblacklist:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=ef2efb3c-1200-47e7-a40e-952b20b2ac5b # Valid UUIDv4
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - "CONNECTOR_NAME=AbuseIPDB IP Blacklist"
@@ -244,7 +244,7 @@ services:
     image: opencti/connector-mitre:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=d1e314b6-7e09-42db-bd5d-19b9ca461f82
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - "CONNECTOR_NAME=MITRE Datasets"
@@ -265,7 +265,7 @@ services:
     image: opencti/connector-urlhaus:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=7ff6b8fd-7a4c-4cdc-9f1d-c5a8ff65a724
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - "CONNECTOR_NAME=Abuse.ch URLhaus"
@@ -284,7 +284,7 @@ services:
     image: opencti/connector-urlscan:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=a21c6a2f-4862-451a-9fd5-65d483339675
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - CONNECTOR_NAME=Urlscan
@@ -306,7 +306,7 @@ services:
     image: opencti/connector-vxvault:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=7abd828e-738d-4c88-ab16-9799e1432a98
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - "CONNECTOR_NAME=VX Vault URL list"
@@ -324,7 +324,7 @@ services:
     image: opencti/connector-shodan:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=d7915b7f-8896-4e4b-a59b-c17a31ce5b34
       - CONNECTOR_TYPE=INTERNAL_ENRICHMENT
       - CONNECTOR_NAME=Shodan
@@ -342,7 +342,7 @@ services:
     image: opencti/connector-greynoise:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=99097a3c-5795-404a-b195-2fabb83c89fd
       - CONNECTOR_TYPE=INTERNAL_ENRICHMENT
       - CONNECTOR_NAME=greynoise
@@ -363,7 +363,7 @@ services:
     image: opencti/connector-intezer-sandbox:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=e617fe85-63c8-4f82-ae0b-da93032add1a
       - CONNECTOR_TYPE=INTERNAL_ENRICHMENT
       - "CONNECTOR_NAME=IntezerSandbox"
@@ -385,7 +385,7 @@ services:
     image: opencti/connector-ipinfo:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=56593e28-2886-455d-94f3-c84deddb2ad3
       - CONNECTOR_TYPE=INTERNAL_ENRICHMENT
       - CONNECTOR_NAME=IpInfo
@@ -402,7 +402,7 @@ services:
     image: opencti/connector-opencti:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=21f7d068-3c55-4b52-96ca-64543e3f452e
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - CONNECTOR_NAME=OpenCTI
@@ -421,7 +421,7 @@ services:
     image: opencti/connector-cyber-campaign-collection:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=94fe0177-3037-4d64-94b5-d4f81c977d8c
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - "CONNECTOR_NAME=APT & Cybercriminals Campaign Collection"
@@ -440,7 +440,7 @@ services:
     image: opencti/connector-malwarebazaar-recent-additions:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=ffcc016c-5f7b-41a7-9712-e5d75ef40153
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - "CONNECTOR_NAME=MalwareBazaar Recent Additions"
@@ -460,7 +460,7 @@ services:
     image: opencti/connector-ivre:5.3.17
     environment:
       - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - OPENCTI_TOKEN=7ad92556-e1b0-46f2-81d6-a813312db5e7
       - CONNECTOR_ID=54acb41b-31aa-49b2-9d50-a8bf4c43b385
       - CONNECTOR_TYPE=INTERNAL_ENRICHMENT
       - CONNECTOR_NAME=ivre
