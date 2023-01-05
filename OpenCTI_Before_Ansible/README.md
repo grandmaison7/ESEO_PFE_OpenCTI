@@ -12,7 +12,7 @@ It deploys Portainer itself, but to deploy OpenCTI you still need to run some co
         
         docker swarm init --advertise-addr [Master IP] >> swarm_init.txt
 
-    On the slave(s) node(s) :
+    On the worker(s) node(s) :
 
         JOIN THE SWARM WITH TOKEN RETURNED IN THE LAST COMMAND ON MASTER
 
