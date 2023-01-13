@@ -36,7 +36,7 @@ Nous vons conseillons donc de monter la solution Open CTI sur plusieurs machines
 
 Prérequis :
 
-Pour que le déploiement soit opérationnel, il faut au préalable que les machines qui seront utilisées pour héberger l'infrastructure communiquement par SSH avec le serveur de déploiement Ansible.
+Pour que le déploiement soit opérationnel, il faut au préalable que les machines qui seront utilisées pour héberger l'infrastructure communiquement par SSH avec le serveur de déploiement Ansible (après la création de la machine serveur Ansible).
 
 Pour lancer le déploiement d'OpenCTI, il suffit d'exécuter la commande suivante :
 
