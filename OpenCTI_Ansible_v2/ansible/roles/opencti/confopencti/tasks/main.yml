@@ -13,10 +13,10 @@
       register: syncfile
       with_items:
        - "~/ansible/roles/opencti/confopencti/tasks/docker-compose.yml"
-       
-  - name: Deploy stack from a compose file
+   
+- name: Deploy stack from a compose file
   community.docker.docker_stack:
     state: present
-    name: mystack
+    name: opencti
     compose:
-      - /opt/docker-compose.yml
+      - "~/ansible/roles/opencti/confopencti/tasks/docker-compose.yml"
