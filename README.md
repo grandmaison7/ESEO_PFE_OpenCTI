@@ -32,22 +32,39 @@ Pour plus de documentation, veuillez consulter notre [Wiki](https://github.com/g
 Open CTI est gourmand en ressource, plus vous souhaitez avoir de la données, plus il vous faudra de ressources. 
 Nous vons conseillons donc de monter la solution Open CTI sur plusieurs machines (organisée en cluster).
 
-### Déploiement de l'infrastructure avec Ansible
+### Déploiement de l'infrastructure 
 
-Pour déployer la solution, il suffit de git clone le projet, vagrant up dans le dossier extrait, puis se connecter en ssh au serveur de déploiement monté.
-Pour aider l'utilisateur, un script, ssh-keygen.sh, peut être exécuté pour générer la paire de clés initiale.
+Sur chaque noeud Ubuntu 20.04
 
+```git clone https://github.com/grandmaison7/ESEO_PFE_OpenCTI.git```
 
-  user --> user-ansible ;
-  pass --> Ans1bLe
+```cd ESEO_PFE_OpenCTI```
 
-Prérequis :
+Attention, on va a présent monter une VM sur chacun de vos machines. 
+Il est nécessaire de configurer le fichier Vagrantfile en fonction de vos __besoins__. Pour spécifier l'adresse IP souhaitée pour les machines virtuelles, il suffit de modifier les paramètres "ipAddrPrefixX" en haut du fichier. Cela affectera l'adresse IP du master en [ipAddrPrefix1] et celle du worker en [ipAddrPrefix2]. Si vous souhaitez déployer plusieurs workers, vous devez spécifier __manuellement__ les adresses IP (un commentaire vous indique où le faire). Si vous ne le faite pas, la solution ne fonctionnera pas.
 
-Pour que le déploiement soit opérationnel, il faut au préalable que les machines qui seront utilisées pour héberger l'infrastructure communiquent par SSH avec le serveur de déploiement Ansible (après la création de la machine serveur Ansible).
+Sur le noeud master : 
+```vagrant up master```
 
-Pour lancer le déploiement d'OpenCTI, il suffit d'exécuter la commande suivante sur le serveur de déploiement :
+Sur les autres noeud worker :
+```vagrant up worker```
+
+Vérifier que les machines communiquent entre elles via ssh.
+
+Puis lancer la solution OpenCTI sur le noeud master :
 
 ```sudo ansible-playbook -i inventaire.ini --user user-ansible --become playbook-deploiement.yml```
+
+Voici les éléments de connections :
+  user => user-ansible ;
+  pass => Ans1bLe
+  
+
+Pour se rendre sur : 
+- OpenCTI : http://(ipNoeudMaster)
+- Portainer : https://(ipNoeudMaster):9443
+
+Attendre une demi-journée pour avoir de la données !
 
 ### Licence et contribution 
 Ce projet est developpé par trois étudiants de l'ESEO dans le cadre de leur Projet de Fin d'Etudes. Il pourra ensuite être réutilisé par des professeurs de l'ESEO pour réaliser des travaux sur l'intelligence artificielle.
