@@ -40,7 +40,7 @@ Pour que le déploiement soit opérationnel, il faut au préalable que les machi
 
 Pour lancer le déploiement d'OpenCTI, il suffit d'exécuter la commande suivante :
 
-```ansible-playbook -i inventaire.ini --user user-ansible --become --ask-become-pass playbook-deploiement.yml```
+```sudo ansible-playbook -i inventaire.ini --user user-ansible --become playbook-deploiement.yml```
 
 ### Licence et contribution 
 Ce projet est developpé par trois étudiants de l'ESEO dans le cadre de leur Projet de Fin d'Etudes. Il pourra ensuite être réutilisé par des professeurs de l'ESEO pour réaliser des travaux sur l'intelligence artificielle.
