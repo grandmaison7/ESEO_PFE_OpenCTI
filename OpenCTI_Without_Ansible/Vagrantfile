@@ -5,8 +5,8 @@ Vagrant.configure("2") do |config|
 
   numMaster = 1
   numWorker = 1
-  ipAddrPrefix1 = "192.168.56.1"
-  ipAddrPrefix2 = "192.168.56.2"
+  ipAddrPrefix1 = "192.168.56.1" #MODIFY ME
+  ipAddrPrefix2 = "192.168.56.2" #MODIFY ME
   
   config.vm.network "public_network",
    use_dhcp_assigned_default_route: true
@@ -16,7 +16,7 @@ Vagrant.configure("2") do |config|
   config.vm.define nodeName do |node|
     node.vm.host_name = nodeName
     node.vm.box = "ubuntu/focal64"
-    node.vm.network :private_network, ip: ipAddrPrefix1 + num.to_s ##Will always be 192.168.56.11 if there are only one master
+    node.vm.network :private_network, ip: ipAddrPrefix1 + num.to_s ##Will always be [ipAddrPrefix1]1 if there are only one master
     node.vm.provider "virtualbox" do |vb|
       vb.name = "master"
       vb.memory = 8192
