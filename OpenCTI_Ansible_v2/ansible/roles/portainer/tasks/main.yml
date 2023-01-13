@@ -9,9 +9,6 @@
     restart: true
     restart_policy: always
     
-    devices:
-     - "/dev/sda:/dev/xvda:rwm"
-     
     ports:
       - "18000:8000"
       - "9443:9443" 
