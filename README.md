@@ -55,6 +55,7 @@ Sur les autres noeud worker :
 Vérifier que les machines communiquent entre elles via ssh.
 
 Pour lancer la solution OpenCTI, tappez dans la machine serveur Ansible : 
+
 ```sudo ansible-playbook -i inventaire.ini --user user-ansible --become playbook-deploiement.yml```
 
 Voici les éléments de connections :
