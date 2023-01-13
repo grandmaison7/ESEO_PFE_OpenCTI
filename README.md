@@ -34,7 +34,10 @@ Nous vons conseillons donc de monter la solution Open CTI sur plusieurs machines
 
 ### Déploiement de l'infrastructure 
 
-Sur chaque noeud Ubuntu 20.04
+Vous devez avoir 3(x) machines : 
+- 1 serveur Ansible
+- 1 noeud master
+- 1+x noeud(s) worker
 
 ```git clone https://github.com/grandmaison7/ESEO_PFE_OpenCTI.git```
 
@@ -51,8 +54,7 @@ Sur les autres noeud worker :
 
 Vérifier que les machines communiquent entre elles via ssh.
 
-Puis lancer la solution OpenCTI sur le noeud master :
-
+Pour lancer la solution OpenCTI, tappez dans la machine serveur Ansible : 
 ```sudo ansible-playbook -i inventaire.ini --user user-ansible --become playbook-deploiement.yml```
 
 Voici les éléments de connections :
