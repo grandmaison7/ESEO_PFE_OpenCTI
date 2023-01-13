@@ -6,8 +6,8 @@
 - name: Copy the file from local to master using Method Push
       tags: sync-push
       synchronize:
-        src: "{{ local_ansible }}"
-        dest: "{{ master1 }}"
+        src: "{{groups['local'][0]}}"
+        dest: "{{groups['swarm_masters'][0]}}"
         mode: push
       delegate_to: "{{groups['local'][0]}}"
       register: syncfile
