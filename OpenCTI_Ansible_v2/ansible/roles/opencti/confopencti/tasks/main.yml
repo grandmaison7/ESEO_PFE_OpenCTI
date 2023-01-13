@@ -1,0 +1,4 @@
+- name: Creates directory
+  file:
+    path: /opencti
+    state: directory
