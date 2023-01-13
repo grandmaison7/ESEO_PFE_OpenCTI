@@ -1,0 +1,54 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$script_hosts = <<-SCRIPT
+echo '192.168.56.11 master'>> /etc/hosts
+echo '192.168.56.21 worker1'>> /etc/hosts
+echo '192.168.56.22 worker2'>> /etc/hosts
+SCRIPT
+
+Vagrant.configure("2") do |config|
+
+  numMaster = 1
+  numWorker = 2
+  ipAddrPrefix1 = "192.168.56.1"
+  ipAddrPrefix2 = "192.168.56.2"
+
+ 1.upto(numMaster) do |num|
+  nodeName = ("master" + num.to_s).to_sym
+  config.vm.define nodeName do |node|
+    node.vm.host_name = nodeName
+    node.vm.box = "ubuntu/focal64"
+    node.vm.network :private_network, ip: ipAddrPrefix1 + num.to_s
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "master"
+      vb.memory = 8192
+    end
+       node.vm.provision "shell", inline: $script_hosts
+       node.vm.provision "shell", path: "scripts/install_docker.sh"
+       node.vm.provision "shell", path: "scripts/install_opencti.sh"
+       node.vm.provision "shell", path: "scripts/install_portainer.sh"
+      end
+    end
+    
+
+    config.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--memory", 2048]
+    end
+
+ 1.upto(numWorker) do |num|
+  nodeName = ("worker" + num.to_s).to_sym
+  config.vm.define nodeName do |node|
+    node.vm.host_name = nodeName
+    node.vm.box = "ubuntu/focal64"
+    node.vm.network :private_network, ip: ipAddrPrefix2 + num.to_s
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "worker"
+      vb.memory = 2048
+    end
+       node.vm.provision "shell", inline: $script_hosts
+       node.vm.provision "shell", path: "scripts/install_docker.sh"
+  end
+  end
+end
+
