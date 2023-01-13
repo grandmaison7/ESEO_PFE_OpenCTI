@@ -40,7 +40,7 @@ Pour déployer la solution, il suffit de git clone le projet, vagrant up dans le
 
 Prérequis :
 
-Pour que le déploiement soit opérationnel, il faut au préalable que les machines qui seront utilisées pour héberger l'infrastructure communiquement par SSH avec le serveur de déploiement Ansible (après la création de la machine serveur Ansible).
+Pour que le déploiement soit opérationnel, il faut au préalable que les machines qui seront utilisées pour héberger l'infrastructure communiquent par SSH avec le serveur de déploiement Ansible (après la création de la machine serveur Ansible).
 
 Pour lancer le déploiement d'OpenCTI, il suffit d'exécuter la commande suivante sur le serveur de déploiement :
 
