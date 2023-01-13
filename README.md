@@ -35,8 +35,8 @@ Nous vons conseillons donc de monter la solution Open CTI sur plusieurs machines
 ### Déploiement de l'infrastructure avec Ansible
 
 Pour déployer la solution, il suffit de git clone le projet, vagrant up dans le dossier extrait, puis se connecter en ssh au serveur de déploiement monté.
-user --> user-ansible
-pass --> Ans1bLe
+  user --> user-ansible
+  pass --> Ans1bLe
 
 Prérequis :
 
