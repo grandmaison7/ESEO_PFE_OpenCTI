@@ -32,7 +32,15 @@ Pour plus de documentation, veuillez consulter notre [Wiki](https://github.com/g
 Open CTI est gourmand en ressource, plus vous souhaitez avoir de la données, plus il vous faudra de ressources. 
 Nous vons conseillons donc de monter la solution Open CTI sur plusieurs machines (organisée en cluster).
 
-# @gautier pour les consignes
+### Déploiement de l'infrastructure avec Ansible
+
+Prérequis :
+
+Pour que le déploiement soit opérationnel, il faut au préalable que les machines qui seront utilisées pour héberger l'infrastructure communiquement par SSH avec le serveur de déploiement Ansible.
+
+Pour lancer le déploiement d'OpenCTI, il suffit d'exécuter la commande suivante :
+
+```ansible-playbook -i inventaire.ini --user user-ansible --become --ask-become-pass install-mediawiki.yml```
 
 ### Licence et contribution 
 Ce projet est developpé par trois étudiants de l'ESEO dans le cadre de leur Projet de Fin d'Etudes. Il pourra ensuite être réutilisé par des professeurs de l'ESEO pour réaliser des travaux sur l'intelligence artificielle.
