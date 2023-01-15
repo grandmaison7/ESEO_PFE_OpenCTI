@@ -34,7 +34,7 @@ Nous vons conseillons donc de monter la solution Open CTI sur plusieurs machines
 
 ### Déploiement de l'infrastructure 
 
-Vous devez avoir 3(x) machines : 
+Vous devez avoir 3+ machines : 
 - 1 serveur Ansible
 - 1 noeud master
 - 1+x noeud(s) worker
@@ -49,7 +49,7 @@ Il est nécessaire de configurer le fichier Vagrantfile en fonction de vos __bes
 Sur le noeud master : 
 ```vagrant up master```
 
-Sur les autres noeud worker :
+Sur les autres noeuds worker :
 ```vagrant up worker```
 
 Vérifier que les machines communiquent entre elles via ssh.
@@ -58,9 +58,9 @@ Pour lancer la solution OpenCTI, tappez dans la machine serveur Ansible :
 
 ```sudo ansible-playbook -i inventaire.ini --user user-ansible --become playbook-deploiement.yml```
 
-Voici les éléments de connections :
+Voici les éléments de connexion :
   user => user-ansible ;
-  pass => Ans1bLe
+  pass => 1621a9
   
 
 Pour se rendre sur : 
@@ -70,4 +70,4 @@ Pour se rendre sur :
 Attendre une demi-journée pour avoir de la données !
 
 ### Licence et contribution 
-Ce projet est developpé par trois étudiants de l'ESEO dans le cadre de leur Projet de Fin d'Etudes. Il pourra ensuite être réutilisé par des professeurs de l'ESEO pour réaliser des travaux sur l'intelligence artificielle.
+Ce projet est developpé par trois étudiants de l'ESEO dans le cadre de leur Projet de Fin d'Etudes. Il pourra ensuite être réutilisé par des professeurs de l'ESEO pour réaliser des travaux sur la Big Data ou/et l'intelligence artificielle.
