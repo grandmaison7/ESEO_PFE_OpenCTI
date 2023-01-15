@@ -1,0 +1,49 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  numMaster = 1
+  numWorker = 1
+  ipAddrPrefix1 = "192.168.56.1" #MODIFY ME
+  ipAddrPrefix2 = "192.168.56.2" #MODIFY ME
+  
+  config.vm.network "public_network",
+   use_dhcp_assigned_default_route: true
+
+ 1.upto(numMaster) do |num|
+  nodeName = ("master").to_sym
+  config.vm.define nodeName do |node|
+    node.vm.host_name = nodeName
+    node.vm.box = "ubuntu/focal64"
+    node.vm.network :private_network, ip: ipAddrPrefix1 + num.to_s ##Will always be [ipAddrPrefix1]1 if there are only one master
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "master"
+      vb.memory = 8192
+    end
+       node.vm.provision "shell", path: "scripts/install_docker.sh"
+       node.vm.provision "shell", path: "scripts/install_opencti.sh"
+       node.vm.provision "shell", path: "scripts/install_portainer.sh"
+      end
+    end
+    
+
+    config.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--memory", 2048]
+    end
+
+ 1.upto(numWorker) do |num|
+  nodeName = ("worker").to_sym
+  config.vm.define nodeName do |node|
+    node.vm.host_name = nodeName
+    node.vm.box = "ubuntu/focal64"
+    node.vm.network :private_network, ip: ipAddrPrefix2 + num.to_s ## HARD CODE THE IP IF THERE ARE MULTIPLE WORKERS !
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "worker"
+      vb.memory = 8192
+    end
+       node.vm.provision "shell", path: "scripts/install_docker.sh"
+  end
+  end
+end
+
