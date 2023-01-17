@@ -63,13 +63,16 @@ Pour lancer la solution OpenCTI, tappez dans la machine serveur Ansible :
 Voici les éléments de connexion :
   user => user-ansible ;
   pass => 1621a9
-  
 
+Ne pas oublier de détruire le swarm/stack si on veut changer de master !
+```docker stack rm opencti```
+```docker swarm leave --force```
 Pour se rendre sur : 
-- OpenCTI : http://(ipNoeudMaster)
+- OpenCTI : http://(ipNoeudMaster):8080
 - Portainer : https://(ipNoeudMaster):9443
 
 Attendre une demi-journée pour avoir de la données !
+
 
 ### Licence et contribution 
 Ce projet est developpé par trois étudiants de l'ESEO dans le cadre de leur Projet de Fin d'Etudes. Il pourra ensuite être réutilisé par des professeurs de l'ESEO pour réaliser des travaux sur la Big Data ou/et l'intelligence artificielle.
