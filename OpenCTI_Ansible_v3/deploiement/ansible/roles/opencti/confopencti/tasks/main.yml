@@ -1,0 +1,28 @@
+- name: Creates directory
+  become: true
+  file:
+    path: /opencti
+    state: directory
+
+- name: install python3
+  become: true
+  apt:
+    name: python3
+
+- name: install pip
+  become: true
+  apt:
+    name: python3-pip
+
+- name: install jsondiff
+  become: true
+  pip:
+    name: jsondiff
+   
+- name: Deploy stack from a compose file
+  become: true
+  community.docker.docker_stack:
+    state: present
+    name: opencti
+    compose:
+      - "/docker-files-master/docker-compose.yml"

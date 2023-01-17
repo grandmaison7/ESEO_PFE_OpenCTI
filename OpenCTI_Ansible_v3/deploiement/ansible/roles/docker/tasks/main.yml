@@ -1,0 +1,50 @@
+- name: Update and upgrade apt packages
+  become: true
+  apt:
+    #upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
+
+- name: Install dependencies for docker
+  become: true
+  apt:
+    pkg:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg-agent
+    - software-properties-common
+ 
+- name: Download Docker
+  become: true
+  get_url:
+   url: https://download.docker.com/linux/ubuntu/gpg
+   dest: /
+   
+- name: Add an Apt signing key, uses whichever key is at the URL
+  become: true
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add specified repository into sources list
+  become: true
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+ 
+- name: Update and upgrade apt packages
+  become: true
+  apt:
+    #upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
+    
+- name: Install dependencies for docker
+  become: true
+  apt:
+    pkg:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-compose
