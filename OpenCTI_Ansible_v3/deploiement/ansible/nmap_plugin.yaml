@@ -1,0 +1,4 @@
+# Sample configuration file for custom nmap_plugin. Yes, it is the same file we used for tye dynamic inventory script
+---
+plugin: nmap_plugin
+address: 192.168.0.0/24
