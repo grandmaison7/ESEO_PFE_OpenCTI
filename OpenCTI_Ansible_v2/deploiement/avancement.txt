@@ -5,3 +5,12 @@ TROUVER UN MOYEN DE SAVOIR L'IP DANS L'INVENTORY
 SUITE : LANCER PLAYBOOK POUR VOIR FONCTIONNEMENT LUNDI SOIR URGENT
 
 Signé Don Corleone
+**
+
+
+POINTS DAMELIORATION : dynamiser l'inventaire au lieu de le modif à la main (Cobbler, Openstack dynamic inv)
+voire un plugin nmap pour scan auto + inventory auto
+
+Actuellement l'inventaire doit être fait en manuel, comme le /etc/hosts
+dns externe pour remédier au etc/hosts
+inventaire auto -> plugin custom nmap en v4+
