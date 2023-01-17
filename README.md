@@ -56,10 +56,9 @@ Vérifier que les machines communiquent entre elles via ssh:
 
 ```ssh -i /home/user-ansible/.ssh/id_rsa user-ansible@[vm worker ou vm master]```
 
-
 Pour lancer la solution OpenCTI, tappez dans la machine serveur Ansible : 
 
-```sudo ansible-playbook -i inventaire.ini --user user-ansible --become playbook-deploiement.yml```
+```ansible-playbook -i inventaire.ini -u user-ansible -K --become-method sudo playbook-deploiement.yml```
 
 Voici les éléments de connexion :
   user => user-ansible ;
