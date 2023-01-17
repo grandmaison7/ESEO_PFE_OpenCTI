@@ -52,7 +52,10 @@ Sur le noeud master :
 Sur les autres noeuds worker :
 ```vagrant up worker```
 
-Vérifier que les machines communiquent entre elles via ssh.
+Vérifier que les machines communiquent entre elles via ssh:
+
+```ssh -i /home/user-ansible/.ssh/id_rsa user-ansible@[vm worker ou vm master]```
+
 
 Pour lancer la solution OpenCTI, tappez dans la machine serveur Ansible : 
 
